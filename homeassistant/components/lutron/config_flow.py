@@ -9,7 +9,8 @@ from urllib.error import HTTPError
 from pylutron import Lutron
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+###from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
 
 from .const import DOMAIN
@@ -17,14 +18,16 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
-class LutronConfigFlow(ConfigFlow, domain=DOMAIN):
+class LutronRonModifiedConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """User prompt for Main Repeater configuration information."""
 
     VERSION = 1
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    ###) -> ConfigFlowResult:
+    ) -> config_entries.ConfigFlowResult:
+
         """First step in the config flow."""
 
         # Check if a configuration entry already exists
@@ -76,7 +79,9 @@ class LutronConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_import(
         self, import_config: dict[str, Any]
-    ) -> ConfigFlowResult:
+    ####) -> ConfigFlowResult:
+    ) -> config_entries.ConfigFlowResult:
+
         """Attempt to import the existing configuration."""
         if self._async_current_entries():
             return self.async_abort(reason="single_instance_allowed")

@@ -6,7 +6,7 @@ import logging
 from pylutron import Button, Keypad, Led, Lutron, LutronEvent, OccupancyGroup, Output
 import voluptuous as vol
 
-from homeassistant import config_entries
+###from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ID,
@@ -143,13 +143,26 @@ class LutronButton:
         #   RaiseLower -> pressed/released
         #   SingleAction -> single
         action = None
-        if self._has_release_event:
-            if event == Button.Event.PRESSED:
-                action = "pressed"
-            else:
-                action = "released"
-        elif event == Button.Event.PRESSED:
-            action = "single"
+        #if self._has_release_event:
+        #    if event == Button.Event.PRESSED:
+        #        action = "pressed"
+        #    else:
+        #        action = "released"
+        #elif event == Button.Event.PRESSED:
+        #    action = "single"
+
+        ev_map = {
+            Button.Event.PRESS: "press",
+            Button.Event.RELEASE: "release",
+            Button.Event.HOLD: "hold",
+            Button.Event.DOUBLE_TAP: "double_tap",
+            Button.Event.HOLD_RELEASE: "hold_release"
+        }
+
+        if event in ev_map:
+            data = {ATTR_ID: self._id, ATTR_ACTION: ev_map[event], ATTR_FULL_ID: self._full_id}
+            self._hass.bus.fire(self._event, data)
+
 
         if action:
             data = {
@@ -246,6 +259,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
                     "Toggle",
                     "SingleSceneRaiseLower",
                     "MasterRaiseLower",
+                    "DualAction",
+                    "AdvancedToggle",
+                    "AdvancedConditional",
+                    "SimpleConditional"
                 ):
                     # Associate an LED with a button if there is one
                     led = next(
@@ -253,6 +270,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
                         None,
                     )
                     entry_data.scenes.append((area.name, keypad, button, led))
+
+                    # Add the LED as a light device if is controlled via integration
+                    #if not(led is None) and button.led_logic==5:
+                    #    hass.data[LUTRON_DEVICES]["led"].append((area.name, keypad.name, led))
 
                     platform = Platform.SCENE
                     _async_check_entity_unique_id(
